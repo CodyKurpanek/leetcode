@@ -12,14 +12,20 @@ Terminology includes:
     traversing, Going down nodes in a specific path
     levels, the generation of a node. If the root node is at level 0, its children are at 1
     keys, the value that is accessed from a specific node
+    binary tree, a tree who's parent nodes have two children nodes, one to the left and one to the right
 
-A main type of tree is a binary search tree. In binary search trees, beginning at the root,
-each node has two children, one to the left and one to the right, with the value of the node
-on the left being a smaller value, and the one on the right being a larger value. BST's 
-Typically dont have duplicate values, but there are certain methods of dealing with duplicates.
+
+A main type of tree is a binary search tree. for a binary search tree, the value of the child to 
+the left is a smaller value, and the one on the right is a larger value. BSTs typically
+ dont have duplicate values, but there are certain methods of dealing with duplicates.
 
 Therefore, the next closest node may not be the next value in order, but it is always greater
 or less in value; 10 could have a child to the right with 12 whos child to the left is 11.
+
+
+A heap is a binary tree in which every node's children contain lower values. The root, therefore,
+holds the maximum value and is accessed often.
+
 */
 
 #include<iostream>
@@ -36,12 +42,6 @@ class Node{
             this->value = value;
         }
 };
-
-Node *createNode(int value){
-    Node a(value);
-    cout << &a;
-    return &a;
-}
 
 //Binary Search Tree implementation
 class BST{
@@ -92,6 +92,8 @@ class BST{
             }
         }
 };
+
+
 
 
 int main(){
