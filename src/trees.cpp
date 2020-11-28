@@ -29,6 +29,7 @@ holds the maximum value and is accessed often.
 */
 
 #include<iostream>
+#include<vector>
 
 using namespace std;
 
@@ -47,10 +48,11 @@ class Node{
 class BST{
     public:
         //instance variable
-        Node *root = nullptr;
+        Node *root;
 
         //constructor
         BST(){
+            root  = nullptr;
         }
 
         //Method to insert values into the BST beginning with the root.
@@ -94,14 +96,94 @@ class BST{
 };
 
 
+class Heap{
+    public:
+        Node *root;
+        //the final completed level; used for finding the last node. Used in insertion and getMax.
+        vector<Node*> finalCompleteLevel;
+        //the last empty spot on the level after the final level; also used to find the last node.
+        //say finalCompleteLevel is a one level below the root and has two nodes. In that case, 
+        //finalPosition = 0 refers to the left child of the first node, finalPosition = 1 refers
+        //to the right node of child one, finalPosition = 2 refers to the left node of the second
+        //child, and finalPosition = 3 refers to the right child of the node at the second position.
+        int finalLevelPosition;
+
+        Heap(){
+            root = nullptr;
+        }
+
+        //if the level after finalCompleteLevel is completed, call repopulate to change 
+        //finalCompleteLevel to that level. 
+        void repopulateFinalCompleteLevel(){
+            vector<Node *> newFinalCompleteLevel;
+            for (int i = 0; i < finalCompleteLevel.size(); i ++){
+                newFinalCompleteLevel.push_back(finalCompleteLevel.at(i)->left);
+                newFinalCompleteLevel.push_back(finalCompleteLevel.at(i)->right);
+                finalLevelPosition = -1;
+            }
+            finalCompleteLevel = newFinalCompleteLevel;
+        }
+        //insert a value into the heap
+        void insert(int value){
+            if (root == nullptr){
+                root = new Node(value);
+                finalCompleteLevel.push_back(root);
+                finalLevelPosition = -1;
+                return;
+            }
+            int maxIndex = ((finalCompleteLevel.size() * 2) - 1);
+            //If the next row has been fully populated, switch to next row
+            if (finalLevelPosition >= maxIndex){
+                repopulateFinalCompleteLevel();
+            }
+            //increment up to the next open node
+            finalLevelPosition++;
+            //insert new item into the next open node
+            if (finalLevelPosition % 2 == 0){
+                finalCompleteLevel.at(finalLevelPosition / 2)->left = new Node(value);
+            }
+            else{
+                finalCompleteLevel.at(finalLevelPosition / 2)->left = new Node(value);
+            }
+            //TODO put the node into the correct position of the heap
+
+            //TODO void getmax();
+
+        }
+        // 2 following methods delete the entire heap and deallocate all of the memory
+        //First called by outside methods
+        void deleteHeap(){
+            //recursively delete the children of root until the children don't exist
+            if(root->left != nullptr){
+                deleteHeap(root->left);
+            }
+            if(root->right != nullptr){
+                deleteHeap(root->right);
+            }
+            delete(root);
+        }
+    private:
+        //called by the deleteHeap without arguments for subsequent children.
+        void deleteHeap(Node* parent){
+            //recursively delete the children of root until the children don't exist
+            if(parent->left != nullptr){
+                deleteHeap(parent->left);
+            }
+            if(parent->right != nullptr){
+                deleteHeap(parent->right);
+            }
+            delete(parent);
+        }
+};
 
 
 int main(){
-    BST tree;
-    Node *a = createNode(4);
-    tree.insert(4);
-    tree.insert(2);
+    Heap heap;
+    heap.insert(2);
+    heap.insert(4);
+    heap.insert(3);
+    heap.deleteHeap();
 
-    cout << tree.root->value << endl;
+    return 0;
 }
 
