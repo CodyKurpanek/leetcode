@@ -4,15 +4,14 @@
 //at each array index, and making the nodes contain the key and value because at the node,
 //you need to know if the value pertains to the same, nonhashed key
 
-//note to self: understand static. Change so that insert can be done with brackets.
-//understand exception processing
-
 #include<iostream>
 #include<vector>
 #include<string>
+#include<math.h>
 
 using namespace std;
 
+//Node for each element of the hash table
 class Node{
     public:
         int value;
@@ -25,6 +24,13 @@ class Node{
         }
 };
 
+//exception for searching for a key that doesn't exist
+class invalidKeyException: public exception{
+    virtual const char* what() const throw(){
+        return "Invalid Key";
+    }
+} invalidKeyException;
+
 
 
 //Class to create a hash table
@@ -32,9 +38,9 @@ class hashTable{
     private:
         const static int HASHTABLESIZE = 26;
         Node* arr[HASHTABLESIZE];
-        
-        //my hash function returns the alphabetical index of the first letter
-        int hashValue(string key){
+
+        //hash function returns the alphabetical index of the first letter
+        int hashFunction(string key){
             unsigned int returnVal = key.at(0) - 'a';
             return (returnVal);
         }
@@ -45,16 +51,19 @@ class hashTable{
                 arr[i] = nullptr;
             }
         }
-        //insert into the hash table with key and value
+        //insert into the hash table
         void insert(string key, int value){
-            int arrIndex = hashValue(key);
+            //Get the correct index of the hash table
+            int arrIndex = hashFunction(key);
             Node *currentPosition = arr[arrIndex];
-            
+            //The rest of this method inserts into the next open spot of the linked list at the
+            //correct index of the hash table
+            //if first spot is open:
             if (currentPosition == nullptr){
                 arr[arrIndex] = new Node(key, value);
             }
+            //else, look through linked list until finding an index with the same key or next is null 
             else{
-                //maybe I can change this to somethign different than while(1)
                 while (1){
                     if(currentPosition->key == key){
                         currentPosition->value = value;
@@ -68,21 +77,27 @@ class hashTable{
                 }
             }
         }
-        int getValue(string key){
-            int arrIndex = hashValue(key);
+        //search for the value associated with a key
+        int search(string key){
+            //find correct index of hash table
+            int arrIndex = hashFunction(key);
             Node *currentPosition = arr[arrIndex];
+            //search the linked list at the correct index until finding a node with the same key
             while(currentPosition != nullptr){
                 if (currentPosition->key == key){
                     return currentPosition->value;
                 }
                 currentPosition = currentPosition->next;
             }
-            cout << "INVALID KEY" << endl;
-            throw 1;
+            //if none of the same key is found, throw an invalicKeyException
+            throw invalidKeyException;
         }
+
         //clear up the memory allocated to all of the nodes in the hash table
         void deleteTable(){
+            //for all elements in the hash table
             for (unsigned int i = 0; i < HASHTABLESIZE; i ++){
+                //delete all elements of the linked list at that index
                 Node* currentPosition = arr[i];
                 while(currentPosition != nullptr){
                     Node* tmp = currentPosition;
@@ -97,15 +112,20 @@ class hashTable{
 int main(){
     hashTable table;
 
+    table.insert("four", 7);
+
     const int amountOfValues = 10;
-    string keys[amountOfValues] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"};
+    string keys[amountOfValues] = {"one", "two", "three", "four", "five", "six","seven", "eight",
+     "nine", "ten"};
     int values[amountOfValues] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     for(int i = 0; i < amountOfValues; i ++){
         table.insert(keys[i], values[i]);
     }
-    cout << table.getValue("four") << " " << table.getValue("five") << endl;
+
+    cout << table.search("four") << " " << table.search("five") << endl;
+    cout << table.search("six") << " " << table.search("seven") << endl;
+    cout << table.search("hello") << endl;
 
     table.deleteTable();
-
     return 0;
 }
