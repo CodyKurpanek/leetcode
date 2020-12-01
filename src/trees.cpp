@@ -17,7 +17,7 @@ Terminology includes:
 
 A main type of tree is a binary search tree. for a binary search tree, the value of the child to 
 the left is a smaller value, and the one on the right is a larger value. BSTs typically
- dont have duplicate values, but there are certain methods of dealing with duplicates.
+dont have duplicate values, but there are certain methods of dealing with duplicates.
 
 Therefore, the next closest node may not be the next value in order, but it is always greater
 or less in value; 10 could have a child to the right with 12 whos child to the left is 11.
@@ -33,8 +33,8 @@ holds the maximum value and is accessed often.
 
 using namespace std;
 
-// A node for a tree
-class Node{
+// A node for BST, doesn't need to store parent
+class BSTNode{
     public:
         int value = -1;
         Node *left = nullptr;
@@ -44,11 +44,25 @@ class Node{
         }
 };
 
+class Node{
+    public:
+        int value = -1;
+        Node *left = nullptr;
+        Node *right = nullptr;
+        Node *parent = nullptr;
+        Node(int value){
+            this->value = value;
+        }
+}
+
+
 //Binary Search Tree implementation
 class BST{
     public:
         //instance variable
-        Node *root;
+        BSTNode *root;
+        //decided 
+        bool left;
 
         //constructor
         BST(){
@@ -57,39 +71,31 @@ class BST{
 
         //Method to insert values into the BST beginning with the root.
         void insert(int value){
-            Node a(value);
-            /*
-            TODO: initialize the nodes into memory in the heap (with new)
-
-            in the first run, instance.insert(4), it sets root to a node at 0x61fe80 with value 4
-            //in the second run, instance.insert(2), changes 0x61fe80's value to 2.
-            //THE MEMORY FOR VARIABLES ON THE STACK IS CLEARED UP FOR ANY NEW VARIABLES TO USE
-            //AFTER LEAVING THIS METHOD. ANY VARIABLES THAT NEED TO BE SAVED AFTER ABANDONING
-            //A SCOPE NEED TO BE SAVED IN THE HEAP.
-            */
-
-
+            BSTNode* tmp = new BSTNode(value);
             //rest of the code puts the node into the correct position
             if(root == nullptr){
-                root = &a;
+                root = tmp;
                 //cout << "4?" << root ->value << endl;
                 return;
             }
             cout << root -> value;
-            Node *current = root;
+            BSTNode *current = root;
             while(1){            
                 //if it should go to the left child
                 if (value < current->value){
-                    if(current -> left == nullptr){
-                        current -> left = &a;
+                    if(current->left == nullptr){
+                        current->left = tmp;
                         return;
                     }
                 }
                 //if it should go to the right child
                 else{
-                    //TODO complete code for if the value is greater than at the current node
-                    return;
-                    
+                    if (current->right == nullptr){
+                        current->right = tmp;
+                        //TODO complete code for if the value is greater than at the current node
+                        return;
+                    }
+
                 }
             }
         }
@@ -146,7 +152,7 @@ class Heap{
                 finalCompleteLevel.at(finalLevelPosition / 2)->left = new Node(value);
             }
             //TODO put the node into the correct position of the heap
-
+            
             //TODO void getmax();
 
         }
