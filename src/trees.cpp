@@ -30,6 +30,8 @@ holds the maximum value and is accessed often.
 
 #include<iostream>
 #include<vector>
+#include<stack>
+#include<queue>
 
 using namespace std;
 
@@ -37,13 +39,13 @@ using namespace std;
 class BSTNode{
     public:
         int value = -1;
-        Node *left = nullptr;
-        Node *right = nullptr;
-        Node(int value){
+        BSTNode *left = nullptr;
+        BSTNode *right = nullptr;
+        BSTNode(int value){
             this->value = value;
         }
 };
-
+//node for heap
 class Node{
     public:
         int value = -1;
@@ -53,7 +55,7 @@ class Node{
         Node(int value){
             this->value = value;
         }
-}
+};
 
 
 //Binary Search Tree implementation
@@ -61,9 +63,6 @@ class BST{
     public:
         //instance variable
         BSTNode *root;
-        //decided 
-        bool left;
-
         //constructor
         BST(){
             root  = nullptr;
@@ -73,35 +72,57 @@ class BST{
         void insert(int value){
             BSTNode* tmp = new BSTNode(value);
             //rest of the code puts the node into the correct position
+            //if no root yet
             if(root == nullptr){
                 root = tmp;
-                //cout << "4?" << root ->value << endl;
                 return;
             }
-            cout << root -> value;
             BSTNode *current = root;
+            //run through the rest of the bst, going in the correct direction until end of leaf
             while(1){            
                 //if it should go to the left child
                 if (value < current->value){
+                    //if left is null, put new node there and method is finished otherwise go to that node
                     if(current->left == nullptr){
                         current->left = tmp;
                         return;
                     }
+                    current = current->left;
                 }
                 //if it should go to the right child
                 else{
+                    //if right is null, put new node there and method is finished otherwise go to that node
                     if (current->right == nullptr){
                         current->right = tmp;
-                        //TODO complete code for if the value is greater than at the current node
                         return;
                     }
-
+                    current = current->right;
                 }
             }
         }
+        void deleteBST(){
+            //if empty tree, return
+            if (root == nullptr){
+                return;
+            }
+            stack<BSTNode*> nodes;
+            nodes.push(root);
+            while(!nodes.empty()){
+                BSTNode *tmp = nodes.top();
+                nodes.pop();
+                if (tmp->left != nullptr){
+                    nodes.push(tmp->left);
+                }
+                if(tmp->right != nullptr){
+                    nodes.push(tmp->right);
+                }
+                delete(tmp);
+            }
+            root = nullptr;
+        }
 };
 
-
+//heap implementation
 class Heap{
     public:
         Node *root;
@@ -116,6 +137,25 @@ class Heap{
 
         Heap(){
             root = nullptr;
+        }
+        //returns a pointer to the last node for insert and pop
+        Node *lastNode(){
+            if (finalLevelPosition % 2 == 0){
+                if(finalCompleteLevel.at(finalLevelPosition / 2)->left == nullptr){
+                    finalCompleteLevel.at(finalLevelPosition / 2)->left = new Node(0);
+                    finalCompleteLevel.at(finalLevelPosition / 2)->left->parent =
+                        finalCompleteLevel.at(finalLevelPosition / 2);
+                }
+                return finalCompleteLevel.at(finalLevelPosition / 2)->left;
+            }
+            else{
+                if(finalCompleteLevel.at(finalLevelPosition / 2)->right == nullptr){
+                    finalCompleteLevel.at(finalLevelPosition / 2)->right = new Node(0);
+                    finalCompleteLevel.at(finalLevelPosition / 2)->right->parent =
+                        finalCompleteLevel.at(finalLevelPosition / 2);
+                }
+                return finalCompleteLevel.at(finalLevelPosition / 2)->right;
+            }
         }
 
         //if the level after finalCompleteLevel is completed, call repopulate to change 
@@ -140,21 +180,68 @@ class Heap{
             int maxIndex = ((finalCompleteLevel.size() * 2) - 1);
             //If the next row has been fully populated, switch to next row
             if (finalLevelPosition >= maxIndex){
-                repopulateFinalCompleteLevel();
+                repopulateFinalCompleteLevel(); 
             }
             //increment up to the next open node
             finalLevelPosition++;
-            //insert new item into the next open node
-            if (finalLevelPosition % 2 == 0){
-                finalCompleteLevel.at(finalLevelPosition / 2)->left = new Node(value);
+            //insert new item into the next open node, and save that node's current position
+            Node* current = lastNode();
+            current->value = value;
+            //put the node further up into the heap until it is less than its parent's value
+            while (current->parent != nullptr && current->parent->value < current->value){
+                int tmp = current->parent->value;
+                current->parent->value = current->value;
+                current->value = tmp;
+                current = current->parent;
+            }
+        }
+        /*
+        pops the maximum value. Does this by putting the last node's value into the root then
+        moving that down throught the heap until it is in a place where it satisfies a heap 
+        (parents > children). Checks the largest child when moving down.
+        */
+
+        int pop(){
+            int top = root->value;
+            //put the last node's value into root
+            Node *current = lastNode();
+            root->value = current->value;
+            //delete the last node and set its parent's corresponding node to null
+            if (finalLevelPosition % 2 == 1){
+                current->parent->right = nullptr;
             }
             else{
-                finalCompleteLevel.at(finalLevelPosition / 2)->left = new Node(value);
+                current->parent->left = nullptr;
             }
-            //TODO put the node into the correct position of the heap
-            
-            //TODO void getmax();
-
+            delete(current);
+            //rest of the method swithes current into the correct position
+            current = root;
+            Node* next;
+            if(current->left->value > current->right->value){
+                next = current->left;
+            }
+            else{
+                next = current->right;
+            }
+            while(next->value > current->value){
+                //swap next and current's value
+                int tmp = next->value;
+                next->value = current->value;
+                current->value = tmp;
+                //set current
+                current = next;
+                //set next
+                if (current->left == nullptr && current->right == nullptr){
+                    return top;
+                }
+                if(current->right == nullptr || (current->left->value > current->right->value)){
+                    next = current->left;
+                }
+                else{
+                    next = current->right;
+                }
+            }
+            return top;
         }
         // 2 following methods delete the entire heap and deallocate all of the memory
         //First called by outside methods
@@ -167,6 +254,7 @@ class Heap{
                 deleteHeap(root->right);
             }
             delete(root);
+            root = nullptr;
         }
     private:
         //called by the deleteHeap without arguments for subsequent children.
@@ -182,12 +270,60 @@ class Heap{
         }
 };
 
+void BFS(BST bst){
+    //if empty tree, return
+    if (bst.root == nullptr){
+        return;
+    }
+    queue<BSTNode*> nodes;
+    nodes.push(bst.root);
+    while(!nodes.empty()){
+        BSTNode *tmp = nodes.front();
+        cout << tmp->value << " ";
+        nodes.pop();
+        if (tmp->left != nullptr){
+            nodes.push(tmp->left);
+        }
+        if(tmp->right != nullptr){
+            nodes.push(tmp->right);
+        }
+    }
+    cout << endl;
+}
+
+
 
 int main(){
+    BST bst;
+    bst.insert(3);
+    bst.insert(1);
+    bst.insert(2);
+    bst.insert(5);
+    bst.insert(4);
+    bst.insert(6);
+    cout << "Breadth first search of tree:" << endl;
+    BFS(bst);
+    bst.deleteBST();
+
+    bst.insert(3);
+    bst.insert(6);
+    bst.insert(5);
+    bst.insert(4);
+    bst.insert(2);
+    bst.insert(3);
+
+    cout << "Breadth first search of tree:" << endl;
+    BFS(bst);
+    bst.deleteBST();
+
     Heap heap;
-    heap.insert(2);
-    heap.insert(4);
-    heap.insert(3);
+    for(int i = 0; i < 10; i ++){
+        heap.insert(i);
+    }
+    cout << "First 5 elements from the heap:" << endl;
+    for(int i = 0; i < 5; i ++){
+        cout << heap.pop() << " ";
+    }
     heap.deleteHeap();
 
     return 0;
