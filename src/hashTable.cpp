@@ -111,21 +111,25 @@ class hashTable{
 
 int main(){
     hashTable table;
-
+    //insert the value 7 for the key four
     table.insert("four", 7);
-
-    const int amountOfValues = 10;
+    //create ten keys with the corresponding integer value
+    const int amountOfValues = 10;    
     string keys[amountOfValues] = {"one", "two", "three", "four", "five", "six","seven", "eight",
      "nine", "ten"};
     int values[amountOfValues] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    //insert all of them
     for(int i = 0; i < amountOfValues; i ++){
         table.insert(keys[i], values[i]);
     }
-
+    try{
     cout << table.search("four") << " " << table.search("five") << endl;
     cout << table.search("six") << " " << table.search("seven") << endl;
     cout << table.search("hello") << endl;
-
+    }catch(exception &e){
+        cout << e.what() << endl;
+    }
+    
     table.deleteTable();
     return 0;
 }
